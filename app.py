@@ -1,51 +1,59 @@
-from flask import Flask, jsonify, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from models import db, Todo
-from config import Config
+from flask import Flask, render_template, request
+import numpy as np
+import pickle
 
-
-from flask_cors import CORS
+# Load the heart disease prediction model
+try:
+    with open('heart_disease_model.pkl', 'rb') as file:
+        model = pickle.load(file)
+    if not hasattr(model, 'predict'):
+        raise TypeError("The loaded model does not have a 'predict' method.")
+except (FileNotFoundError, TypeError, pickle.UnpicklingError) as e:
+    model = None
+    print(f"Error loading model: {e}")
 
 app = Flask(__name__)
-CORS(app)
 
-app.config.from_object(Config)
-#app.config['SQLALCHEMY_DATABASE_URI']='sqlite:///Todo.db'
-#db = SQLAlchemy(app)
-#migrate = Migrate(app, db)
+# Home route to display the HTML form
+@app.route('/')
+def home():
+    return render_template('index.html')
 
-db.init_app(app)
-migrate = Migrate(app, db)
+# Route to handle form submission and make a prediction
+@app.route('/predict', methods=['POST'])
+def predict():
+    if model is None:
+        return render_template('index.html', prediction_text="Model not loaded. Please check the server logs for more details.")
 
-@app.route('/todos', methods=['GET'])
-def get_todos():
-    todos = Todo.query.all()
-    return jsonify([todo.to_dict() for todo in todos])
+    if request.method == 'POST':
+        # Retrieve input values from the form
+        try:
+            age = float(request.form['age'])
+            sex = float(request.form['sex'])
+            cp = float(request.form['cp'])
+            trestbps = float(request.form['trestbps'])
+            chol = float(request.form['chol'])
+            fbs = float(request.form['fbs'])
+            restecg = float(request.form['restecg'])
+            thalach = float(request.form['thalach'])
+            exang = float(request.form['exang'])
+            oldpeak = float(request.form['oldpeak'])
+            slope = float(request.form['slope'])
+            ca = float(request.form['ca'])
+            thal = float(request.form['thal'])
 
-@app.route('/todos', methods=['POST'])
-def add_todo():
-    data = request.json
-    new_todo = Todo(task=data['title'])
-    db.session.add(new_todo)
-    db.session.commit()
-    return jsonify(new_todo.to_dict()), 201
+            # Prepare input data for prediction
+            input_data = np.array([[age, sex, cp, trestbps, chol, fbs, restecg, thalach, exang, oldpeak, slope, ca, thal]])
+            prediction = model.predict(input_data)
 
-@app.route('/todos/<int:id>', methods=['PUT'])
-def update_todo(id):
-    data = request.json
-    todo = Todo.query.get_or_404(id)
-    todo.task = data['title']
-    # todo.completed = data['completed']
-    db.session.commit()
-    return jsonify(todo.to_dict())
+            # Generate result based on the prediction
+            result = 'The Person has Heart Disease' if prediction[0] == 1 else 'The Person does not have a Heart Disease'
 
-@app.route('/todos/<int:id>', methods=['DELETE'])
-def delete_todo(id):
-    todo = Todo.query.get_or_404(id)
-    db.session.delete(todo)
-    db.session.commit()
-    return '', 204
+        except ValueError as ve:
+            result = f"Invalid input values: {ve}"
+
+        # Return the result and display it on the HTML page
+        return render_template('index.html', prediction_text=result)
 
 if __name__ == '__main__':
     app.run(debug=True)
