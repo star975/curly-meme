@@ -1,6 +1,10 @@
 from flask import Flask, render_template, request
 import numpy as np
 import pickle
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load the heart disease prediction model
 try:
