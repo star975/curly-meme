@@ -3,6 +3,7 @@ import numpy as np
 import pickle
 import logging
 
+# Set up logging configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -14,8 +15,9 @@ try:
         raise TypeError("The loaded model does not have a 'predict' method.")
 except (FileNotFoundError, TypeError, pickle.UnpicklingError) as e:
     model = None
-    print(f"Error loading model: {e}")
+    logger.error(f"Error loading model: {e}")
 
+# Initialize the Flask application
 app = Flask(__name__)
 
 # Home route to display the HTML form
@@ -59,5 +61,6 @@ def predict():
         # Return the result and display it on the HTML page
         return render_template('index.html', prediction_text=result)
 
+# Run the Flask application
 if __name__ == '__main__':
     app.run(debug=True)
