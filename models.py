@@ -1,11 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import CheckConstraint
 
 db = SQLAlchemy()
 
 class HeartDiseasePrediction(db.Model):
     """
     A class used to represent a Heart Disease Prediction entry.
-
+    
     Attributes
     ----------
     id : int
@@ -56,10 +57,21 @@ class HeartDiseasePrediction(db.Model):
     thal = db.Column(db.Integer, nullable=False)
     target = db.Column(db.Integer, nullable=False)
     
+    __table_args__ = (
+        CheckConstraint('age >= 0', name='check_age_non_negative'),
+        CheckConstraint('cp >= 0 AND cp <= 3', name='check_cp_range'),
+        CheckConstraint('fbs IN (0, 1)', name='check_fbs_boolean'),
+        CheckConstraint('restecg >= 0 AND restecg <= 2', name='check_restecg_range'),
+        CheckConstraint('exang IN (0, 1)', name='check_exang_boolean'),
+        CheckConstraint('slope >= 0 AND slope <= 2', name='check_slope_range'),
+        CheckConstraint('ca >= 0 AND ca <= 3', name='check_ca_range'),
+        CheckConstraint('thal >= 1 AND thal <= 3', name='check_thal_range'),
+    )
+
     def to_dict(self) -> dict:
         """
         Convert the Heart Disease Prediction instance to a dictionary.
-
+        
         Returns
         -------
         dict
