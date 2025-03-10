@@ -1,4 +1,4 @@
-## PROBLEM STATEMENT
+# PROBLEM STATEMENT
 Addressing the Challenge of Heart Disease in Uganda
 Significant Burden: "Despite significant advancements in healthcare, cardiovascular diseases (CVDs) remain a major public health concern in Uganda."
 Early Detection Gap: "Early detection and prevention of CVDs in Uganda are hindered by limited access to timely and accurate diagnostic tools and resource constraints."
